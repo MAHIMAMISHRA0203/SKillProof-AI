@@ -2,6 +2,7 @@ package com.example.springboot_learning.controller;
 
 import com.example.springboot_learning.model.dto.request.LoginRequest;
 import com.example.springboot_learning.model.dto.request.RegisterRequest;
+import com.example.springboot_learning.model.dto.request.UpdateProfileRequest;
 import com.example.springboot_learning.model.dto.response.AuthResponse;
 import com.example.springboot_learning.model.entity.User;
 import com.example.springboot_learning.service.AuthService;
@@ -9,15 +10,13 @@ import com.example.springboot_learning.util.JwtService;
 import io.jsonwebtoken.Jwt;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -42,5 +41,13 @@ public class AuthController {
         UserDetails userDetails=userDetailsService.loadUserByUsername(loginRequest.getEmail());
         String token=jwtService.generateToken(userDetails);;
         return ResponseEntity.ok(Map.of("token",token));
+    }
+    @GetMapping("/test-env")
+    public String testEnv(@Value("${GITHUB_CLIENT_ID}") String clientId) {
+        return "Client ID starts with: " + clientId.substring(0, 4);
+    }
+    @PutMapping("/update")
+    private ResponseEntity<AuthResponse>updateProfile(@RequestBody @Valid UpdateProfileRequest updateProfileRequest){
+        return ResponseEntity.ok(authService.updateProfile(updateProfileRequest));
     }
 }

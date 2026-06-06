@@ -22,25 +22,40 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
 
-        String authHeader=request.getHeader("Authorization");
-        if(authHeader==null ||!authHeader.startsWith("Bearer ")){
-            filterChain.doFilter(request,response);
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
             return;
         }
-        String token=authHeader.substring(7);
-        String username=jwtService.extractUsername(token);
-        if(username==null || SecurityContextHolder.getContext().getAuthentication()==null){
-            UserDetails userDetails=userDetailsService.loadUserByUsername(username);
-            if(jwtService.isTokenValid(token,userDetails)){
-                //here the user setails are being stored in securitycontect so that spring security know that the user is authenticated
-                UsernamePasswordAuthenticationToken authToken=new UsernamePasswordAuthenticationToken(username,null,userDetails.getAuthorities());
+
+        String token = authHeader.substring(7);
+        String username = null;
+
+        // ✅ Wrap extraction in try-catch — expired/malformed tokens return null
+        try {
+            username = jwtService.extractUsername(token);
+        } catch (Exception e) {
+            // Token is expired or invalid — let the request continue unauthenticated
+            // Spring Security will return 401 automatically for protected routes
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            if (jwtService.isTokenValid(token, userDetails)) {
+                UsernamePasswordAuthenticationToken authToken =
+                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
-
             }
         }
-        filterChain.doFilter(request,response);
+
+        filterChain.doFilter(request, response);
     }
+
 }

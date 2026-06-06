@@ -14,11 +14,30 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.MySQLDialect
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: Ov23li0EdBBYjZY0lqxT
+            client-secret: ee72ed27d23030e81d3d75f5933c6b97bea6390b
+            scope:
+              - user:email
+              - read:user
+        provider:
+          github:
+            authorization-uri: https://github.com/login/oauth/authorize
+            token-uri: https://github.com/login/oauth/access_token
+            user-info-uri: https://api.github.com/user
+            user-name-attribute: login
+
 jwt:
-    secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
-    expiration: 86400000 # 24 hours in milliseconds
+  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+  expiration: 86400000
+
 eureka:
   client:
     enabled: false
+
 server:
   port: 8080
