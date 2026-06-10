@@ -10,7 +10,11 @@ public class CustomException {
         }
 
     }
-
+    public static class GeneralException extends RuntimeException {
+        public GeneralException(String message) {
+            super(message);
+        }
+    }
     public  static class EmailAlreadyExistException extends RuntimeException{
         public EmailAlreadyExistException(String message){
             super(message);

@@ -22,6 +22,7 @@ public class AuthServiceImpl  implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final SkillScoringService skillScoringService;
 
     @Override
     public void register(RegisterRequest request) {
@@ -36,6 +37,7 @@ public class AuthServiceImpl  implements AuthService {
                .isVerified(false)
                .build();
        userRepository.save(user);
+       skillScoringService.initializeScore(user);
 
 
     }
@@ -75,10 +77,13 @@ public class AuthServiceImpl  implements AuthService {
             user.setPassword(passwordEncoder.encode(request.getNewPassword()));
 
         }
-        return AuthResponse.builder()
+        userRepository.save(user);
+         return AuthResponse.builder()
                 .name(user.getName())
                 .email(user.getEmail())
                 .role(user.getRole().name())
                 .build() ;
     }
+
+
 }

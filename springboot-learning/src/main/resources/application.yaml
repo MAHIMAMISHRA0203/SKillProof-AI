@@ -3,8 +3,8 @@ spring:
     name: springboot-learning
   datasource:
     url: jdbc:mysql://localhost:3306/skillproof_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    username: root
-    password: M@hi2304
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -19,8 +19,8 @@ spring:
       client:
         registration:
           github:
-            client-id: Ov23li0EdBBYjZY0lqxT
-            client-secret: ee72ed27d23030e81d3d75f5933c6b97bea6390b
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
             scope:
               - user:email
               - read:user
@@ -37,7 +37,7 @@ spring:
       write-dates-as-timestamps: false
 
 jwt:
-  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+  secret: ${JWT_SECRET}
   expiration: 86400000
 
 eureka:

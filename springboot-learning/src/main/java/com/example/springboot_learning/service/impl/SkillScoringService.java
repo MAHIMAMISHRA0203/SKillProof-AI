@@ -1,0 +1,96 @@
+package com.example.springboot_learning.service.impl;
+
+import com.example.springboot_learning.exception.CustomException;
+import com.example.springboot_learning.model.dto.response.SkillScoreResponse;
+import com.example.springboot_learning.model.entity.GithubRepository;
+import com.example.springboot_learning.model.entity.SkillScore;
+import com.example.springboot_learning.model.entity.SkillScore.ScoreStatus;
+import com.example.springboot_learning.model.entity.User;
+import com.example.springboot_learning.repository.GithubRepositoryRepository;
+import com.example.springboot_learning.repository.SkillScoreRepository;
+import lombok.RequiredArgsConstructor;
+import org.apache.kafka.common.errors.ResourceNotFoundException;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static jakarta.ws.rs.core.Response.status;
+
+@Service
+@RequiredArgsConstructor
+public class SkillScoringService {
+    private  final SkillScoreRepository skillScoreRepository;
+    private final GithubRepositoryRepository githubRepositoryRepository;
+    public SkillScore initializeScore(User user) {
+        return skillScoreRepository.findUserById(user.getId())
+                .orElseGet(() -> {
+                    SkillScore score = SkillScore.builder()
+                            .user(user)
+                            .status(ScoreStatus.PENDING)
+                            .build();
+                    return skillScoreRepository.save(score);
+                });
+    }
+public SkillScore analyzeScore(User user){
+        List<GithubRepository> repos=githubRepositoryRepository.findByUserId(user.getId());
+        if(repos.isEmpty()){
+            throw new CustomException.GeneralException("No repositories found.Please sync your github repo first");
+
+        }
+        SkillScore score=skillScoreRepository.findUserById(user.getId())
+                .orElseThrow(()->new CustomException.ResourceNotFoundException("Score record not found "+user.getId()));
+        score.setStatus(ScoreStatus.PROCESSING);
+        skillScoreRepository.save(score);
+        int consistency=computeConsistencyScore(repos);
+        int diversity=computediversityScore(repos);
+        int documentaton=computeDocumentationScore(repos);
+        int overall =consistency+diversity+documentaton;
+
+        score.setConsistencyScore(consistency);
+        score.setDiversityScore(diversity);
+        score.setDocumentationScore(documentaton);
+        score.setOverallScore(overall);
+        score.setGrade(computeGrade(overall));
+        score.setStatus(ScoreStatus.COMPLETED);
+        return skillScoreRepository.save(score);
+}
+public SkillScore getScore(User user){
+        return skillScoreRepository.findUserById(user.getId())
+                .orElseThrow(()->new CustomException.ResourceNotFoundException("No score found for this user"));
+
+}
+private int computeConsistencyScore(List<GithubRepository>repos){
+    LocalDateTime sixMonthsAgo=LocalDateTime.now().minusMonths(6);
+    long recentCount=repos.stream()
+            .filter(r->r.getPushedAt()!=null && r.getPushedAt().isAfter(sixMonthsAgo))
+            .count();
+    return (int) Math.min(recentCount*10,100);
+}
+private int computediversityScore(List<GithubRepository>repos){
+        Set<String> languages=repos.stream()
+                .filter(r->r.getLanguage()!=null)
+                .map(GithubRepository::getLanguage)
+                .collect(Collectors.toSet());
+        return Math.min(languages.size()*10,100);
+}
+private int computeDocumentationScore(List<GithubRepository>repos){
+        if(repos.isEmpty())return 0;
+        long described=repos.stream()
+                .filter(r->r.getDescription()!=null  && !r.getDescription().isEmpty())
+                .count();
+        return (int)((described*100)/repos.size());
+}
+private String computeGrade(int score){
+    if(score>=90)    return "A+";
+    if(score>=80)    return "A";
+    if(score>=70)    return "B+";
+    if(score>=60)    return "B";
+    if(score>=50)    return "C+";
+    else   return "D";
+
+
+}
+}
