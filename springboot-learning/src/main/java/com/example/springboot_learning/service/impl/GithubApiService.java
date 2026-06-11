@@ -3,14 +3,22 @@ package com.example.springboot_learning.service.impl;
 import com.example.springboot_learning.exception.CustomException;
 import com.example.springboot_learning.model.dto.response.GitHubRepoResponse;
 import com.example.springboot_learning.model.dto.response.RepoSummaryResponse;
+import com.example.springboot_learning.model.entity.SkillScore;
 import com.example.springboot_learning.model.entity.User;
 import com.example.springboot_learning.repository.GithubRepositoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import com.example.springboot_learning.model.entity.GithubRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import com.example.springboot_learning.model.dto.response.PageRepoResponse;
+import com.example.springboot_learning.model.dto.response.RepoItemResponse;
 
+import javax.naming.ldap.PagedResultsControl;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -21,6 +29,7 @@ import java.util.stream.Collectors;
 @Service
 
 public class GithubApiService {
+    private final SkillScoringService skillScoringService;
     private final RestClient restClient;
 
     private final GithubRepositoryRepository githubRepositoryRepository;
@@ -103,5 +112,51 @@ public class GithubApiService {
                 .documentationRate(docRate)
                 .build();
     }
+    public SkillScore syncAndAnalyze(User user){
+        fetchAndSaveRepos(user);
+        return skillScoringService.analyzeScore(user);
+    }
+public PageRepoResponse getPageRepos(User user,int page ,int size,String sortBy,String direction,String language){
+        Sort.Direction sortDirection=direction.equalsIgnoreCase("desc")
+                ? Sort.Direction.DESC : Sort.Direction.ASC;
+    ;
+        Pageable pageable=PageRequest.of(page,size,Sort.by(sortDirection,sortBy));
+        Page<GithubRepository> repoPage=githubRepositoryRepository
+                .findByUserIdWithFilter(user.getId(),language,pageable);
+        List<RepoItemResponse> items =repoPage.getContent().stream()
+                .map(this::toRepoItemResponse)
+                .toList();
+    return PageRepoResponse.builder()
+            .repos(items)
+            .currentPage(repoPage.getNumber())
+            .totalPages(repoPage.getTotalPages())
+            .totalRepos(repoPage.getTotalElements())
+            .hasNext(repoPage.hasNext())
+            .hasPrevious(repoPage.hasPrevious())
+            .build();
 
+}
+public List<RepoItemResponse> getTopRepos(User user){
+        Pageable top5=PageRequest.of(0,5);
+        return githubRepositoryRepository
+                .findTop5ByUserId(user.getId(), top5)
+                .stream()
+                .map(this::toRepoItemResponse)
+                .toList();
+
+}
+    private RepoItemResponse toRepoItemResponse(GithubRepository repo) {
+        return RepoItemResponse.builder()
+                .githubRepoId(repo.getGithubRepoId())
+                .repoName(repo.getRepoName())
+                .fullName(repo.getFullName())
+                .description(repo.getDescription())
+                .language(repo.getLanguage())
+                .repoUrl(repo.getRepoUrl())
+                .stars(repo.getStars())
+                .forks(repo.getForks())
+                .isPrivate(repo.getIsPrivate())
+                .pushedAt(repo.getPushedAt())
+                .build();
+    }
 }

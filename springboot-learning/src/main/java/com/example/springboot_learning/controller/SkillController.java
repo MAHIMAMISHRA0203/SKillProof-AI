@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/skills")
 @RequiredArgsConstructor
 public class SkillController {
-    public final SkillScoringService skillScoringService;
+    private final SkillScoringService skillScoringService;
     private final AuthService authService;
     @PostMapping("/analyze")
     public ResponseEntity<SkillScoreResponse> analyze(){
@@ -27,6 +27,12 @@ public class SkillController {
 
     @GetMapping("/score")
     public ResponseEntity<SkillScoreResponse> getScore(){
+        User currentUser=authService.getCurrentUser();
+        SkillScore score=skillScoringService.getScore(currentUser);
+        return ResponseEntity.ok(toResponse(score));
+    }
+    @GetMapping("/history")
+    public ResponseEntity<SkillScoreResponse> getScoreHistory(){
         User currentUser=authService.getCurrentUser();
         SkillScore score=skillScoringService.getScore(currentUser);
         return ResponseEntity.ok(toResponse(score));

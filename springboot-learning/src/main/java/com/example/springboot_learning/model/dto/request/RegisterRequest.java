@@ -20,11 +20,9 @@ public class RegisterRequest {
     @NotBlank(message ="password cannot be null")
     @Size(min=6,message="password should be atleast 6 charaters")
     private String password;
+    private String githubUsername;
 
-    @NotNull(message="Role is requird")
-    private Role role;
-
-
+    private Role role = Role.USER;
 
 
 }

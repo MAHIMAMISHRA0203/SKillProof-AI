@@ -5,8 +5,8 @@ import lombok.Data;
 
 @Data
 public class UpdateProfileRequest {
-    @NotBlank
-    private  String name;
+    private String name;
     private String newPassword;
+    private String githubUsername;
 
 }

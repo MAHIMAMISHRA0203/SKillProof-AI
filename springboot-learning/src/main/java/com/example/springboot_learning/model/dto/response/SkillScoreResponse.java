@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 public class SkillScoreResponse {
     private Long id;
     private Integer overAllScore;
-    private Integer ConsistencyScore;
     private Integer consistencyScore;
     private Integer diversityScore;
     private Integer documentationScore;

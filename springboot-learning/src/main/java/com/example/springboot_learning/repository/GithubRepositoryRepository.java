@@ -1,8 +1,12 @@
 package com.example.springboot_learning.repository;
 
 import com.example.springboot_learning.model.entity.GithubRepository;
+import org.springframework.boot.autoconfigure.info.ProjectInfoProperties;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,6 +22,13 @@ public interface GithubRepositoryRepository extends JpaRepository<GithubReposito
     @Query("SELECT COALESCE(SUM(r.forks), 0) FROM GithubRepository r WHERE r.user.id = :userId")
     int sumForksByUserId(Long userId);
 
+    @Query("SELECT r FROM GithubRepository r WHERE r.user.id = :userId " +
+            "AND (:language IS NULL OR r.language = :language)")
+    Page<GithubRepository> findByUserIdWithFilter(@Param("userId")Long userId , @Param("language")String language, Pageable pageable);
+
+    @Query("SELECT r FROM GithubRepository r WHERE r.user.id = :userId " +
+            "ORDER BY r.stars DESC")
+    List<GithubRepository> findTop5ByUserId(@Param("userId")Long usserId,Pageable pageable);
 
 
 }

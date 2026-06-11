@@ -3,9 +3,12 @@ package com.example.springboot_learning.config;
 import com.example.springboot_learning.filter.JwtAuthFilter;
 import com.example.springboot_learning.service.impl.OAuth2UserServiceImpl;
 import com.example.springboot_learning.service.impl.UserDetailServiceImpl;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -30,18 +33,33 @@ public class SecurityConfig {
     private final OAuth2UserServiceImpl oAuth2UserService;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
-        http
-                .csrf(csrf->csrf.disable())
-                .authorizeHttpRequests(auth->auth
-                        .requestMatchers("/api/v1/auth/**").permitAll()
+    @Order(1)
+
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
+                http
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/register", "/api/v1/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/auth/test-env").permitAll()
+                        .requestMatchers("/error", "/oauth2/**", "/login/oauth2/**").permitAll()
                         .anyRequest().authenticated())
-                .sessionManagement(s->s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .httpBasic(basic -> basic.disable())
+                .formLogin(form -> form.disable())
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .oauth2Login(oauth->oauth
-                        .userInfoEndpoint(userInfo->userInfo.userService(oAuth2UserService))
-                        .successHandler(oAuth2SuccessHandler));
+                .oauth2Login(oauth -> oauth
+                        .loginPage("/login/oauth2")
+                        .userInfoEndpoint(userInfo -> userInfo.userService(oAuth2UserService))
+                        .successHandler(oAuth2SuccessHandler))
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\": \"Unauthorized\"}");
+                        }));
         return http.build();
     }
      @Bean

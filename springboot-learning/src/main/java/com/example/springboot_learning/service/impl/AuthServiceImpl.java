@@ -71,18 +71,24 @@ public class AuthServiceImpl  implements AuthService {
 
     @Override
     public AuthResponse updateProfile(UpdateProfileRequest request) {
-        User user=getCurrentUser();
-        user.setName(request.getName());
-        if(request.getNewPassword() !=null &&!request.getNewPassword().isBlank()){
-            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        User user = getCurrentUser();
 
+        if (request.getName() != null && !request.getName().isBlank()) {
+            user.setName(request.getName());
         }
+        if (request.getNewPassword() != null && !request.getNewPassword().isBlank()) {
+            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        }
+        if (request.getGithubUsername() != null && !request.getGithubUsername().isBlank()) {
+            user.setGithubUsername(request.getGithubUsername());
+        }
+
         userRepository.save(user);
-         return AuthResponse.builder()
+        return AuthResponse.builder()
                 .name(user.getName())
                 .email(user.getEmail())
                 .role(user.getRole().name())
-                .build() ;
+                .build();
     }
 
 

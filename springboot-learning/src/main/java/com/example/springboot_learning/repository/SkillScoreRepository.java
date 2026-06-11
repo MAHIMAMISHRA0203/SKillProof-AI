@@ -9,5 +9,5 @@ import java.util.Optional;
 @Repository
 public interface  SkillScoreRepository  extends JpaRepository<SkillScore,Long>
 {
-    Optional< SkillScore> findUserById(Long userId);
+    Optional< SkillScore> findByUser_Id(Long userId);
 }
