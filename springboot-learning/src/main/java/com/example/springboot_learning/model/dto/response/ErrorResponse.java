@@ -9,6 +9,8 @@ import java.time.LocalDateTime;
 public class ErrorResponse {
     private int status;
     private String message;
+    private String path;
+    private String error;
     private LocalDateTime timestamp;
 
 }

@@ -1,26 +1,21 @@
 package com.example.springboot_learning.service.impl;
 
 import com.example.springboot_learning.exception.CustomException;
-import com.example.springboot_learning.model.dto.response.GitHubRepoResponse;
-import com.example.springboot_learning.model.dto.response.RepoSummaryResponse;
+import com.example.springboot_learning.model.dto.request.RepoProjection;
+import com.example.springboot_learning.model.dto.response.*;
 import com.example.springboot_learning.model.entity.SkillScore;
 import com.example.springboot_learning.model.entity.User;
 import com.example.springboot_learning.repository.GithubRepositoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import com.example.springboot_learning.model.entity.GithubRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import com.example.springboot_learning.model.dto.response.PageRepoResponse;
-import com.example.springboot_learning.model.dto.response.RepoItemResponse;
 
-import javax.naming.ldap.PagedResultsControl;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -36,7 +31,7 @@ public class GithubApiService {
 
     public List<GithubRepository> fetchAndSaveRepos(User user){
         if(user.getGithubUsername()==null ||user.getGithubUsername().isBlank()){
-            throw new CustomException.GeneralException("No  Github Account linked to this user "+ HttpStatus.BAD_REQUEST);
+            throw new CustomException.GeneralException("No  Github Account linked to this user .Please connect your github ");
         }
         GitHubRepoResponse[]repos=restClient.get()
                 .uri("/users/{username}/repos?per_page=100&sort=pushed", user.getGithubUsername())
@@ -54,7 +49,7 @@ public class GithubApiService {
         return githubRepositoryRepository
                 .findByGithubRepoId(githubRepoId)
                 .orElseThrow(()->new CustomException.GeneralException(
-                        "Repository not fond in db "+githubRepoId+HttpStatus.BAD_REQUEST
+                        "Repository not fond in db "+githubRepoId
                 ));
     }
     private GithubRepository mapAndSave(GitHubRepoResponse response,User user){
@@ -159,4 +154,21 @@ public List<RepoItemResponse> getTopRepos(User user){
                 .pushedAt(repo.getPushedAt())
                 .build();
     }
+    public List<RepoProjection> getLightWeightRepos(User user){
+        return githubRepositoryRepository.findProjectedByUserId(user.getId());
+    }
+    public List<LanguageStatsResponse>getLanguageStats(User user){
+        return githubRepositoryRepository.findLanguageStats(user.getId());
+    }
+    public List<RepoItemResponse>searchRepos(User user,String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            throw new CustomException.GeneralException("Search cannot be Empty");
+        }
+            return githubRepositoryRepository
+                    .searchByRepoName(user.getId(), keyword)
+                    .stream()
+                    .map(this::toRepoItemResponse)
+                    .toList();
+        }
+
 }

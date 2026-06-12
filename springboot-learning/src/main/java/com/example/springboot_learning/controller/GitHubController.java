@@ -1,15 +1,14 @@
 package com.example.springboot_learning.controller;
 
-import com.example.springboot_learning.model.dto.response.PageRepoResponse;
-import com.example.springboot_learning.model.dto.response.RepoItemResponse;
-import com.example.springboot_learning.model.dto.response.RepoSummaryResponse;
-import com.example.springboot_learning.model.dto.response.SkillScoreResponse;
+import com.example.springboot_learning.model.dto.request.RepoProjection;
+import com.example.springboot_learning.model.dto.response.*;
 import com.example.springboot_learning.model.entity.GithubRepository;
 import com.example.springboot_learning.model.entity.SkillScore;
 import com.example.springboot_learning.model.entity.User;
 import com.example.springboot_learning.service.AuthService;
 import com.example.springboot_learning.service.impl.GithubApiService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -57,6 +56,24 @@ public class GitHubController {
     public ResponseEntity<List<RepoItemResponse>> getTopRepos(){
         User currentUser=authService.getCurrentUser();
         return ResponseEntity.ok(githubApiService.getTopRepos(currentUser));
+
+    }
+    @GetMapping("/repos/lightweight")
+    public ResponseEntity<List<RepoProjection>> getLighweightRepos(){
+        User currentUser=authService.getCurrentUser();
+        return  ResponseEntity.ok(githubApiService.getLightWeightRepos(currentUser));
+    }
+
+    @GetMapping("/repos/stats")
+    public ResponseEntity<List<LanguageStatsResponse>> getLanguageStats(){
+        User currentUser=authService.getCurrentUser();
+        return  ResponseEntity.ok(githubApiService.getLanguageStats(currentUser));
+
+    }
+    @GetMapping("/repos/search")
+    public ResponseEntity<List<RepoItemResponse>>  searchRepos(@RequestParam String keyword){
+        User currentUser=authService.getCurrentUser();
+        return  ResponseEntity.ok(githubApiService.searchRepos(currentUser,keyword));
 
     }
     private SkillScoreResponse toResponse(SkillScore score) {
