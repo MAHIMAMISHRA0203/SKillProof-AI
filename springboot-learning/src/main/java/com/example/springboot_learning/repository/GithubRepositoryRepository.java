@@ -1,6 +1,6 @@
 package com.example.springboot_learning.repository;
 
-import com.example.springboot_learning.model.dto.request.RepoProjection;
+import com.example.springboot_learning.model.dto.response.RepoProjection;
 import com.example.springboot_learning.model.dto.response.LanguageStatsResponse;
 import com.example.springboot_learning.model.entity.GithubRepository;
 import org.springframework.data.domain.Page;

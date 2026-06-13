@@ -1,12 +1,14 @@
 package com.example.springboot_learning.service.impl;
 
 import com.example.springboot_learning.exception.CustomException;
-import com.example.springboot_learning.model.dto.request.RepoProjection;
+import com.example.springboot_learning.model.dto.response.RepoProjection;
 import com.example.springboot_learning.model.dto.response.*;
 import com.example.springboot_learning.model.entity.SkillScore;
 import com.example.springboot_learning.model.entity.User;
 import com.example.springboot_learning.repository.GithubRepositoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -107,6 +109,8 @@ public class GithubApiService {
                 .documentationRate(docRate)
                 .build();
     }
+    @CacheEvict(value = {"repos", "languagestats", "skillscore"}, key = "'user_' + #user.id")
+
     public SkillScore syncAndAnalyze(User user){
         fetchAndSaveRepos(user);
         return skillScoringService.analyzeScore(user);
@@ -131,6 +135,8 @@ public PageRepoResponse getPageRepos(User user,int page ,int size,String sortBy,
             .build();
 
 }
+    @Cacheable(value = "repos", key = "'top_' + #user.id")
+
 public List<RepoItemResponse> getTopRepos(User user){
         Pageable top5=PageRequest.of(0,5);
         return githubRepositoryRepository
@@ -157,6 +163,8 @@ public List<RepoItemResponse> getTopRepos(User user){
     public List<RepoProjection> getLightWeightRepos(User user){
         return githubRepositoryRepository.findProjectedByUserId(user.getId());
     }
+    @Cacheable(value = "languagestats", key = "'user_' + #user.id")
+
     public List<LanguageStatsResponse>getLanguageStats(User user){
         return githubRepositoryRepository.findLanguageStats(user.getId());
     }

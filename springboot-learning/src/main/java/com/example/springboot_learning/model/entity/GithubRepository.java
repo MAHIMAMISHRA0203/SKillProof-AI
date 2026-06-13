@@ -1,5 +1,6 @@
 package com.example.springboot_learning.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -12,6 +13,8 @@ import java.time.LocalDateTime;
 @Builder
 @Data
 @Entity
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+
 
 
 

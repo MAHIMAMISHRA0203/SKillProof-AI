@@ -8,13 +8,14 @@ import com.example.springboot_learning.model.entity.User;
 import com.example.springboot_learning.repository.GithubRepositoryRepository;
 import com.example.springboot_learning.repository.SkillScoreRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +32,9 @@ public class SkillScoringService {
                     return skillScoreRepository.save(score);
                 });
     }
-public SkillScore analyzeScore(User user){
+    @CacheEvict(value = "skillscore", key = "'user_' + #user.id")
+
+    public SkillScore analyzeScore(User user){
         List<GithubRepository> repos=githubRepositoryRepository.findByUserId(user.getId());
         if(repos.isEmpty()){
             throw new CustomException.GeneralException("No repositories found.Please sync your github repo first");
@@ -54,7 +57,11 @@ SkillScore score=initializeScore(user);
         score.setStatus(ScoreStatus.COMPLETED);
         return skillScoreRepository.save(score);
 }
-public SkillScore getScore(User user){
+
+    @Cacheable(value = "skillscore", key = "'user_' + #user.id")
+
+
+    public SkillScore getScore(User user){
         return skillScoreRepository.findByUser_Id(user.getId())
                 .orElseThrow(()->new CustomException.ResourceNotFoundException("No score found for this user"));
 

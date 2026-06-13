@@ -1,4 +1,4 @@
-package com.example.springboot_learning.model.dto.request;
+package com.example.springboot_learning.model.dto.response;
 
 public interface RepoProjection {
     Long getGithubRepoId();

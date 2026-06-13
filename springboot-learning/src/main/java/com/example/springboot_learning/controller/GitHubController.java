@@ -1,6 +1,6 @@
 package com.example.springboot_learning.controller;
 
-import com.example.springboot_learning.model.dto.request.RepoProjection;
+import com.example.springboot_learning.model.dto.response.RepoProjection;
 import com.example.springboot_learning.model.dto.response.*;
 import com.example.springboot_learning.model.entity.GithubRepository;
 import com.example.springboot_learning.model.entity.SkillScore;
@@ -8,7 +8,6 @@ import com.example.springboot_learning.model.entity.User;
 import com.example.springboot_learning.service.AuthService;
 import com.example.springboot_learning.service.impl.GithubApiService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
