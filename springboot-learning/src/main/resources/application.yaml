@@ -51,3 +51,8 @@ eureka:
 
 server:
   port: 8080
+groq:
+  api:
+    key: ${GROQ_API_KEY}
+    url: https://api.groq.com/openai/v1/chat/completions
+    model: llama3-8b-8192
