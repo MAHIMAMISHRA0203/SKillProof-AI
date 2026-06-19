@@ -1,14 +1,16 @@
 package com.example.springboot_learning.service.impl;
 
-import com.example.springboot_learning.model.dto.request.AiInsightResponse;
+import com.example.springboot_learning.exception.CustomException;
+import com.example.springboot_learning.model.dto.response.AiInsightResponse;
 import com.example.springboot_learning.model.dto.request.GroqRequest;
+import com.example.springboot_learning.model.dto.response.AnalyzeFullResponse;
 import com.example.springboot_learning.model.dto.response.GroqResponse;
 import com.example.springboot_learning.model.entity.GithubRepository;
 import com.example.springboot_learning.model.entity.SkillScore;
 import com.example.springboot_learning.model.entity.User;
 import com.example.springboot_learning.repository.GithubRepositoryRepository;
 import com.example.springboot_learning.repository.SkillScoreRepository;
-import jakarta.ws.rs.core.HttpHeaders;
+import org.springframework.http.HttpHeaders;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -19,8 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static java.util.Map.Entry.comparingByValue;
-import static org.apache.commons.lang3.stream.LangCollectors.collect;
 
 @Service
 @RequiredArgsConstructor
@@ -154,5 +154,63 @@ public class AiInsightService {
                 .limit(10) // only send top 10 to avoid token limits
                 .map(r -> r.getRepoName() + " (" + r.getLanguage() + ")")
                 .collect(Collectors.joining(", "));
+    }
+    public int getSiCOdeQuality(User user){
+        List<GithubRepository>repos=githubRepositoryRepository.findByUserId(user.getId());
+        if(repos.isEmpty()) return 0;
+        String portfolioSummary=repos.stream()
+                .limit(15)
+                .map(r -> String.format("- %s (language: %s, stars: %d, description: %s)",
+                        r.getRepoName(),
+                        r.getLanguage() != null ? r.getLanguage() : "unknown",
+                        r.getStars() != null ? r.getStars() : 0,
+                        r.getDescription() != null ? r.getDescription() : "none"))
+                .collect(Collectors.joining("\n"));
+        String prompt = String.format("""
+            You are a senior software engineer evaluating a developer's GitHub portfolio.
+            
+            Here are their repositories:
+            %s
+            
+            Evaluate the overall code quality signal based on:
+            1. Meaningfulness of repository names (generic names like "test", "project1" score lower)
+            2. Variety and relevance of languages used
+            3. Presence and quality of descriptions
+            4. Star count as a signal of useful/shareable work
+            5. Overall portfolio depth and professionalism
+            
+            Give a code quality score from 0 to 100.
+            Respond with ONLY a number between 0 and 100. Nothing else.
+            """,
+                portfolioSummary
+        );
+        String response=callGroq(prompt);
+        try{
+            String cleaned=response.trim().replaceAll("[^0-9]","");
+            int score=Integer.parseInt(cleaned.substring(0,Math.min(cleaned.length(),3)));
+            return  Math.min(Math.max(score,0),100);
+
+        }catch (Exception e){
+            return 50;
+        }
+    }
+    public AnalyzeFullResponse fullAnalysis(User user){
+        AiInsightResponse insights=generateInsights(user);
+        SkillScore score=skillScoringRepository.findByUser_Id(user.getId())
+                .orElseThrow(()->new CustomException.ResourceNotFoundException("No score found. Please call /github/sync first."));
+        return AnalyzeFullResponse.builder()
+                .overAllScore(score.getOverallScore())
+                .consistencyScore(score.getConsistencyScore())
+                .diversityScore(score.getDiversityScore())
+                .documentationScore(score.getDocumentationScore())
+                .codeQualityScore(score.getCodeQualityScore())
+                .grade(score.getGrade())
+                .status(score.getStatus())
+                .skillSummary(insights.getSkillSummary())
+                .readmeQualityScore(insights.getReadmeQualityScore())
+                .totalReposAnalyzed(insights.getTotalReposAnalyzed())
+                .analyzedAt(score.getUpdatedAt())
+                .build();
+
     }
 }

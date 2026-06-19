@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 public class SkillScoringService {
     private  final SkillScoreRepository skillScoreRepository;
     private final GithubRepositoryRepository githubRepositoryRepository;
+    private final AiInsightService aiInsightService;
     public SkillScore initializeScore(User user) {
         return skillScoreRepository.findByUser_Id(user.getId())
                 .orElseGet(() -> {
@@ -45,13 +46,14 @@ SkillScore score=initializeScore(user);
         skillScoreRepository.save(score);
         int consistency=computeConsistencyScore(repos);
         int diversity=computediversityScore(repos);
-        int documentaton=computeDocumentationScore(repos);
-        int codeQuality=0;
-        int overall =(consistency+diversity+documentaton+codeQuality)/4;
+        int documentation=computeDocumentationScore(repos);
+        int codeQuality=aiInsightService.getSiCOdeQuality(user);
+        int overall =(consistency+diversity+documentation+codeQuality)/4;
 
         score.setConsistencyScore(consistency);
         score.setDiversityScore(diversity);
-        score.setDocumentationScore(documentaton);
+        score.setDocumentationScore(documentation);
+        score.setCodeQualityScore(codeQuality);
         score.setOverallScore(overall);
         score.setGrade(computeGrade(overall));
         score.setStatus(ScoreStatus.COMPLETED);
