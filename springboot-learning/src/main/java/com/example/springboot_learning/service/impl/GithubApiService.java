@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 public class GithubApiService {
     private final SkillScoringService skillScoringService;
     private final RestClient restClient;
-
+    private final RepoSyncProducers repoSyncProducer;
     private final GithubRepositoryRepository githubRepositoryRepository;
 
     public List<GithubRepository> fetchAndSaveRepos(User user){
@@ -112,8 +112,12 @@ public class GithubApiService {
     @CacheEvict(value = {"repos", "languagestats", "skillscore"}, key = "'user_' + #user.id")
 
     public SkillScore syncAndAnalyze(User user){
-        fetchAndSaveRepos(user);
-        return skillScoringService.analyzeScore(user);
+        List<GithubRepository> repos=fetchAndSaveRepos(user);
+        SkillScore score=skillScoringService.analyzeScore(user);
+        repoSyncProducer.publicRepoSynced(
+                user.getId(), user.getEmail(), user.getGithubUsername(),repos.size()
+        );
+        return score;
     }
 public PageRepoResponse getPageRepos(User user,int page ,int size,String sortBy,String direction,String language){
         Sort.Direction sortDirection=direction.equalsIgnoreCase("desc")
