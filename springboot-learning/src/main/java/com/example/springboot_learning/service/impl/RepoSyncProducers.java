@@ -23,7 +23,7 @@ public class RepoSyncProducers {
                 .repoCount(repoCount)
                 .triggeredAt(LocalDateTime.now().toString())
                 .build();
-        kafkaTemplate.send(KafkaTopicConfig.REPO_SYNC_TOPIC
+        kafkaTemplate.send(KafkaTopicConfig.REPO_SYNCED_TOPIC
         ,String.valueOf(userId),event);
         log.info("Published repo.synced event for user: {} with {} repos",
                 userEmail, repoCount);

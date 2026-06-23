@@ -7,11 +7,11 @@ import org.springframework.kafka.config.TopicBuilder;
 
 @Configuration
 public class KafkaTopicConfig {
-    public static final String REPO_SYNC_TOPIC="repo.synced";
+    public static final String REPO_SYNCED_TOPIC="repo.synced";
     public static final String AI_SYNC_TOPIC="ai.analysis.requested";
     @Bean
     public NewTopic repoSyncTopic(){
-        return TopicBuilder.name(REPO_SYNC_TOPIC)
+        return TopicBuilder.name(REPO_SYNCED_TOPIC)
                 .partitions(1)
                 .replicas(1)
                 .build();

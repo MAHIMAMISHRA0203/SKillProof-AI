@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 public class GithubApiService {
     private final SkillScoringService skillScoringService;
     private final RestClient restClient;
-    private final RepoSyncProducers repoSyncProducer;
+    private final RepoSyncProducers repoSyncProducers;
     private final GithubRepositoryRepository githubRepositoryRepository;
 
     public List<GithubRepository> fetchAndSaveRepos(User user){
@@ -114,7 +114,7 @@ public class GithubApiService {
     public SkillScore syncAndAnalyze(User user){
         List<GithubRepository> repos=fetchAndSaveRepos(user);
         SkillScore score=skillScoringService.analyzeScore(user);
-        repoSyncProducer.publicRepoSynced(
+        repoSyncProducers.publishRepoSynced(
                 user.getId(), user.getEmail(), user.getGithubUsername(),repos.size()
         );
         return score;
