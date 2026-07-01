@@ -57,4 +57,7 @@ public interface GithubRepositoryRepository extends JpaRepository<GithubReposito
     List<GithubRepository> searchByRepoName(
             @Param("userId") Long userId,
             @Param("keyword") String keyword);
+    @Query("SELECT DISTINCT r.user.id FROM GithubRepository r " +
+            "WHERE r.language = :language")
+            List<Long> findUserIdsByLanguage(@Param("language")String language);
 }

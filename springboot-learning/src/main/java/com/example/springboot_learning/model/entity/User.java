@@ -21,7 +21,6 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @Data
-//here we are implementing userdetails as spring security do nt understand user directly
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
