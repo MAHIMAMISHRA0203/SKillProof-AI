@@ -3,6 +3,7 @@ package com.example.springboot_learning.service.impl;
 import com.example.springboot_learning.exception.CustomException;
 import com.example.springboot_learning.model.dto.response.RepoProjection;
 import com.example.springboot_learning.model.dto.response.*;
+import com.example.springboot_learning.model.entity.AuditLog;
 import com.example.springboot_learning.model.entity.SkillScore;
 import com.example.springboot_learning.model.entity.User;
 import com.example.springboot_learning.repository.GithubRepositoryRepository;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 public class GithubApiService {
     private final SkillScoringService skillScoringService;
     private final RestClient restClient;
+    private final AuditLogService auditLogService;
     private final RepoSyncProducers repoSyncProducers;
     private final GithubRepositoryRepository githubRepositoryRepository;
 
@@ -116,6 +118,13 @@ public class GithubApiService {
         SkillScore score=skillScoringService.analyzeScore(user);
         repoSyncProducers.publishRepoSynced(
                 user.getId(), user.getEmail(), user.getGithubUsername(),repos.size()
+        );
+        auditLogService.log(
+                user.getId(),
+                user.getEmail(),
+                "REPOS_SYNCED",
+                "Synced " + repos.size() + " repositories from GitHub",
+                AuditLog.AuditStatus.SUCCESS
         );
         return score;
     }

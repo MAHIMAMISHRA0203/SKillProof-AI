@@ -41,13 +41,16 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(HttpMethod.POST,
+                        .requestMatchers(
                                 "/api/v1/auth/register",
                                 "/api/v1/auth/login",
+                                "/api/v1/recruiter/**",
+                                "/api/v1/badges/developer/**", // ← public badge view
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
-                                "/v3/api-docs").permitAll()
+                                "/v3/api-docs"
+                        ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/auth/test-env").permitAll()
                         .requestMatchers("/error", "/oauth2/**", "/login/oauth2/**").permitAll()
                         .anyRequest().authenticated())

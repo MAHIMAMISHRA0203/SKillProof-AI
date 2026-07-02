@@ -1,6 +1,7 @@
 package com.example.springboot_learning.service.impl;
 
 import com.example.springboot_learning.exception.CustomException;
+import com.example.springboot_learning.model.entity.AuditLog;
 import com.example.springboot_learning.model.entity.GithubRepository;
 import com.example.springboot_learning.model.entity.SkillScore;
 import com.example.springboot_learning.model.entity.SkillScore.ScoreStatus;
@@ -23,6 +24,7 @@ public class SkillScoringService {
     private  final SkillScoreRepository skillScoreRepository;
     private final GithubRepositoryRepository githubRepositoryRepository;
     private final AiInsightService aiInsightService;
+    private final AuditLogService auditLogService;
     public SkillScore initializeScore(User user) {
         return skillScoreRepository.findByUser_Id(user.getId())
                 .orElseGet(() -> {
@@ -57,6 +59,13 @@ SkillScore score=initializeScore(user);
         score.setOverallScore(overall);
         score.setGrade(computeGrade(overall));
         score.setStatus(ScoreStatus.COMPLETED);
+        auditLogService.log(
+                user.getId(),
+                user.getEmail(),
+                "SKILL_SCORE_COMPUTED",
+                "Overall score: " + overall + " Grade: " + computeGrade(overall),
+                AuditLog.AuditStatus.SUCCESS
+        );
         return skillScoreRepository.save(score);
 }
 

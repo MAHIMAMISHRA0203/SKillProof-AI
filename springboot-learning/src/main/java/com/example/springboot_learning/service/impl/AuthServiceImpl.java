@@ -5,6 +5,7 @@ import com.example.springboot_learning.model.dto.request.LoginRequest;
 import com.example.springboot_learning.model.dto.request.RegisterRequest;
 import com.example.springboot_learning.model.dto.request.UpdateProfileRequest;
 import com.example.springboot_learning.model.dto.response.AuthResponse;
+import com.example.springboot_learning.model.entity.AuditLog;
 import com.example.springboot_learning.model.entity.User;
 import com.example.springboot_learning.repository.UserRepository;
 import com.example.springboot_learning.service.AuthService;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl  implements AuthService {
+    private final AuditLogService auditLogService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
@@ -39,7 +41,13 @@ public class AuthServiceImpl  implements AuthService {
        userRepository.save(user);
        skillScoringService.initializeScore(user);
 
-
+        auditLogService.log(
+                user.getId(),
+                user.getEmail(),
+                "USER_REGISTERED",
+                "New user registered with role: " + user.getRole(),
+                AuditLog.AuditStatus.SUCCESS
+        );
     }
 
     @Override
@@ -91,5 +99,10 @@ public class AuthServiceImpl  implements AuthService {
                 .build();
     }
 
-
+    @Override
+    public User getUserByGithubUsername(String githubUsername) {
+        return userRepository.findByGithubUsername(githubUsername)
+                .orElseThrow(() -> new CustomException.ResourceNotFoundException(
+                        "Developer not found with GitHub username: " + githubUsername));
+    }
 }

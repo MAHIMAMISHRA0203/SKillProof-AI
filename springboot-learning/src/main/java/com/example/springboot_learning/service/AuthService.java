@@ -11,5 +11,6 @@ public interface AuthService {
     AuthResponse login(LoginRequest loginRequest);
     User getCurrentUser();
     AuthResponse updateProfile(UpdateProfileRequest request);
+    User getUserByGithubUsername(String githubUsername);
 }
 
