@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,6 +33,8 @@ private final RecruiterService recruiterService;
             summary = "Search developers",
             description = "Search developers by primary language and minimum skill score"
     )
+    @PreAuthorize("hasRole('RECRUITER')")
+
     public ResponseEntity<List<RecruiterSearchResponse>> searchDevelopers(
             @Parameter(description = "Programming language", example = "Java")
             @RequestParam String language,

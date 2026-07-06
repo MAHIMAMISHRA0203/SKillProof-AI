@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl  implements AuthService {
+    private final EmailService emailService;
     private final AuditLogService auditLogService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -48,6 +49,7 @@ public class AuthServiceImpl  implements AuthService {
                 "New user registered with role: " + user.getRole(),
                 AuditLog.AuditStatus.SUCCESS
         );
+        emailService.sendWelcomeEmail(user.getEmail(), user.getName());
     }
 
     @Override

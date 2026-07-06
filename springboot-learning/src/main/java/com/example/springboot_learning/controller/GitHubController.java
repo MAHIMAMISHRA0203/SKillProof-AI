@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -49,6 +50,8 @@ public class GitHubController {
             description = "Fetches latest repos from GitHub API, saves to DB, and computes skill score in one call")
     @ApiResponse(responseCode = "200", description = "Sync successful, returns computed SkillScore")
     @PostMapping("/sync")
+    @PreAuthorize("hasRole('USER')")
+
     public ResponseEntity<SkillScoreResponse> syncAndAnalyze(){
         User currentUser=authService.getCurrentUser();
         SkillScore score=githubApiService.syncAndAnalyze(currentUser);

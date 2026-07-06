@@ -10,11 +10,11 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 @RestController
 @RequestMapping("/api/v1/skills")
 @RequiredArgsConstructor
@@ -23,9 +23,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class SkillController {
     private final SkillScoringService skillScoringService;
     private final AuthService authService;
-
+    @PreAuthorize("hasRole('USER')")
     @Operation(summary = "Analyze skill score",
-            description = "Computes skill score from existing repos in DB. Call /github/sync first.") @PostMapping("/analyze")
+            description = "Computes skill score from existing repos in DB. Call /github/sync first.")
+    @PostMapping("/analyze")
     public ResponseEntity<SkillScoreResponse> analyze(){
         User currentUser=authService.getCurrentUser();
         SkillScore score=skillScoringService.analyzeScore(currentUser);
@@ -36,6 +37,8 @@ public class SkillController {
     @Operation(summary = "Get current skill score",
             description = "Returns the latest computed skill score from DB or cache")
     @GetMapping("/score")
+    @PreAuthorize("hasRole('USER')")
+
     public ResponseEntity<SkillScoreResponse> getScore(){
         User currentUser=authService.getCurrentUser();
         SkillScore score=skillScoringService.getScore(currentUser);

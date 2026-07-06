@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class SkillScoringService {
+    private final EmailService emailService;
     private  final SkillScoreRepository skillScoreRepository;
     private final GithubRepositoryRepository githubRepositoryRepository;
     private final AiInsightService aiInsightService;
@@ -66,7 +67,14 @@ SkillScore score=initializeScore(user);
                 "Overall score: " + overall + " Grade: " + computeGrade(overall),
                 AuditLog.AuditStatus.SUCCESS
         );
+        emailService.sendScoreReadyEmail(
+                user.getEmail(),
+                user.getName(),
+                overall,
+                computeGrade(overall)
+        );
         return skillScoreRepository.save(score);
+
 }
 
     @Cacheable(value = "skillscore", key = "'user_' + #user.id")

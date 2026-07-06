@@ -64,7 +64,18 @@ groq:
     key: ${GROQ_API_KEY}
     url: https://api.groq.com/openai/v1/chat/completions
     model: llama3-8b-8192
-
+mail:
+  host: smtp.gmail.com
+  port: 587
+  username: ${MAIL_USERNAME}
+  password: ${MAIL_APP_PASSWORD}
+  properties:
+    mail:
+      smtp:
+        auth: true
+        starttls:
+          enable: true
+          required: true
 eureka:
   client:
     enabled: false

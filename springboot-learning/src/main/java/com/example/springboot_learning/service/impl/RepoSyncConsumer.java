@@ -2,6 +2,7 @@ package com.example.springboot_learning.service.impl;
 
 import com.example.springboot_learning.config.KafkaTopicConfig;
 import com.example.springboot_learning.model.dto.request.RepoSyncedEvent;
+import com.example.springboot_learning.model.dto.response.AiInsightResponse;
 import com.example.springboot_learning.model.entity.User;
 import com.example.springboot_learning.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 public class RepoSyncConsumer {
     private final AiInsightService aiInsightService;
     private final SkillScoringService skillScoringService;
+    private final EmailService emailService;
     private final UserRepository userRepository;
     @KafkaListener(
             topics = KafkaTopicConfig.REPO_SYNC_TOPIC,
@@ -29,7 +31,12 @@ public class RepoSyncConsumer {
                     .orElseThrow(()->new RuntimeException("User not found"+event.getUserId()));
             log.info("Starting async AI analysis for user: {}", event.getUserEmail());
             aiInsightService.generateInsights(user);
-
+            AiInsightResponse insights = aiInsightService.generateInsights(user);
+            emailService.sendAiInsightsReadyEmail(
+                    user.getEmail(),
+                    user.getName(),
+                    insights.getSkillSummary()
+            );
             log.info("Async AI analysis completed for user: {}", event.getUserEmail());
 
         } catch (Exception e) {
